@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "150974870962",
+    "project_id": "star-nova-11",
+    "storage_bucket": "star-nova-11.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150974870962:android:07b4205bfc07e50454a0ab",
+        "android_client_info": {
+          "package_name": "com.mediaghor.starnova"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6vTGNu7WYle72jRMH21JOcMbYDI4HAi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
