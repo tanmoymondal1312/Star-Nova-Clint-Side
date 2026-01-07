@@ -40,6 +40,7 @@ dependencies {
     implementation("com.github.mukeshsolanki.android-otpview-pinview:otpview:3.1.0")
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-auth")
     implementation("androidx.security:security-crypto:1.1.0-alpha04")
     implementation("com.hbb20:ccp:2.7.3")
     implementation("com.github.Foysalofficial:NafisBottomNav:5.0")

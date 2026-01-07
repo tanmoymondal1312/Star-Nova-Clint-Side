@@ -24,6 +24,7 @@ import com.mediaghor.starnova.ui.util.SystemBarUtils;
 import com.nafis.bottomnavigation.NafisBottomNavigation;
 
 public class MainActivity extends AppCompatActivity {
+    String TAG = "MainActivity";
     NafisBottomNavigation nafisBottomNavigation;
     private AuthTokenManager tokenManager;
 
@@ -38,11 +39,11 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         tokenManager = new AuthTokenManager(this);
-        //tokenManager.setToken("uehdfuerhfue874jhgrfurh78478");
-        tokenManager.deleteToken();
         if (!tokenManager.hasToken()) {
+            Log.d(TAG,"Token Not Saved");
             Intent intent = new Intent(MainActivity.this, AuthenticationActivity.class);
             startActivity(intent);
+            finish();
         }
         bottomNavigation();
         SystemBarUtils.setSystemBars(this, ContextCompat.getColor(this, R.color.layout_bg),
