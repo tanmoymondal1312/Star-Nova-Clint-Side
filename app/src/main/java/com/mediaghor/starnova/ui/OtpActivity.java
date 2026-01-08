@@ -23,12 +23,20 @@ import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.mediaghor.starnova.R;
+import com.mediaghor.starnova.model.LoginRequest;
+import com.mediaghor.starnova.model.LoginResponse;
+import com.mediaghor.starnova.network.ApiService;
+import com.mediaghor.starnova.network.RetrofitClient;
 import com.mediaghor.starnova.repository.AuthTokenManager;
 import com.mediaghor.starnova.ui.util.AuthExceptionHandler;
 import com.mediaghor.starnova.ui.FirebaseAuthManager;
 import com.mediaghor.starnova.ui.util.SystemBarUtils;
 import com.mediaghor.starnova.ui.util.VibrationUtil;
 import com.mukeshsolanki.OtpView;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class OtpActivity extends AppCompatActivity implements FirebaseAuthManager.AuthCallback {
 
@@ -261,18 +269,46 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
     public void onSignInSuccess(AuthResult authResult) {
         Log.i(TAG, "onSignInSuccess: Authentication successful");
         runOnUiThread(() -> {
-            showLoading(false);
+
 
             Toast.makeText(OtpActivity.this,
                     "Authentication successful!", Toast.LENGTH_SHORT).show();
-            tokenManager.deleteToken();
-            tokenManager.setToken("ujhdfuehfuieoi93er9juhuefiheuif8");
+            if(tokenManager.hasToken()){
+                tokenManager.deleteToken();
+            }
 
-            // TODO: Navigate to main activity or next screen
-            Intent intent = new Intent(OtpActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            ApiService apiService = RetrofitClient
+                    .getClient()
+                    .create(ApiService.class);
+
+            LoginRequest request = new LoginRequest(phone);
+
+            apiService.login(request).enqueue(new Callback<LoginResponse>() {
+                @Override
+                public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String token = response.body().getToken();
+                        tokenManager.setToken(token);
+                        Log.d(TAG,"The Auth Token IS: "+token.toString());
+                        showLoading(false);
+                        // TODO: Navigate to main activity or next screen
+                        Intent intent = new Intent(OtpActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<LoginResponse> call, Throwable throwable) {
+                    Log.d(TAG,throwable.getMessage().toString());
+
+                }
+            });
+
+
+
+
         });
     }
 
