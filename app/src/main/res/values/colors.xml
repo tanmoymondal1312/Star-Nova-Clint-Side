@@ -16,6 +16,27 @@
     <color name="white_disable">#5D5A5A</color>
     <color name="red">#D92323</color>
 
+    <color name="card_soft_blue">#5DADE2</color>
+    <color name="card_soft_pink">#FFEB3B</color>
+    <color name="card_soft_yellow">#CDDC39</color>
+    <color name="card_soft_green">#D4EDDA</color>
+
+
+    <!-- Text Colors -->
+    <color name="spinner_text_color">#000000</color>        <!-- Black text for selected item -->
+    <color name="spinner_dropdown_text_color">#333333</color> <!-- Slightly darker gray for dropdown items -->
+
+
+
+    <!-- Borders -->
+    <color name="spinner_border_color">#CCCCCC</color>      <!-- Light gray border -->
+
+    <!-- Dropdown Icon -->
+    <color name="spinner_arrow_color">#555555</color>       <!-- Dark gray arrow -->
+
+    <!-- Optional hover / selected state -->
+    <color name="spinner_item_selected_bg">#F0F0F0</color>  <!-- Light gray for selected dropdown item -->
+
 
 
 </resources>

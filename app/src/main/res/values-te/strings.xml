@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Star Nova</string>
+    <string name="hi_i_am_novi">హాయ్, నేను నోవి.</string>
+    <string name="do_you_like_to_learn_english_with_me">
+        నా తో కలిసి ఇంగ్లీష్ నేర్చుకోవాలనుకుంటున్నారా?
+    </string>
+
+    <string name="what_s_your_name">👋 మీ పేరు ఏమిటి?</string>
+    <string name="how_good_is_your_english">📘 మీ ఇంగ్లీష్ ఎంత బాగా ఉంది?</string>
+
+    <string name="congress_you_have_successfully_created_your_account">🎉 అభినందనలు! మీ ఖాతా విజయవంతంగా సృష్టించబడింది</string>
+
+    <string name="tell_us_about_you">🎒 మీ గురించి చెప్పండి</string>
+    <string name="your_class">📚 మీ తరగతి</string>
+    <string name="your_age">🎂 మీ వయస్సు</string>
+
+
+
+
+
+    <string-array name="experience_array">
+        <item>ప్రారంభం</item>
+        <item>మధ్యస్థం</item>
+        <item>అధునాతన</item>
+    </string-array>
+</resources>

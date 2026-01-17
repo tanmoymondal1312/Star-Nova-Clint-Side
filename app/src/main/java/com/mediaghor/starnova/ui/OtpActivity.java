@@ -94,8 +94,7 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
 
                 // Display phone number
                 if (phone != null && tvPhoneNumber != null) {
-                    String displayPhone = "******" + phone.substring(phone.length() - 4);
-                    tvPhoneNumber.setText(getString(R.string.sent_to, displayPhone));
+                    tvPhoneNumber.setText(phone);
                 }
             } else {
                 Log.e(TAG, "onCreate: No intent data received");
@@ -292,8 +291,10 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
                         Log.d(TAG,"The Auth Token IS: "+token.toString());
                         showLoading(false);
                         // TODO: Navigate to main activity or next screen
+
                         Intent intent = new Intent(OtpActivity.this, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        intent.putExtra("source_activity", "OtpActivity");
                         startActivity(intent);
                         finish();
                     }

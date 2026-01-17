@@ -3,6 +3,7 @@ package com.mediaghor.starnova.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +18,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.mediaghor.starnova.R;
 import com.mediaghor.starnova.repository.AuthTokenManager;
+import com.mediaghor.starnova.repository.UserPreferenceManager;
+import com.mediaghor.starnova.ui.Dialog.CustomDialog;
 import com.mediaghor.starnova.ui.Fragments.FragmentAi;
 import com.mediaghor.starnova.ui.Fragments.FragmentDailyTask;
 import com.mediaghor.starnova.ui.Fragments.FragmentProfile;
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     String TAG = "MainActivity";
     NafisBottomNavigation nafisBottomNavigation;
     private AuthTokenManager tokenManager;
+    CustomDialog customDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,19 +43,31 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         tokenManager = new AuthTokenManager(this);
-        if (!tokenManager.hasToken()) {
-            Log.d(TAG,"Token Not Saved");
-            Intent intent = new Intent(MainActivity.this, AuthenticationActivity.class);
-            startActivity(intent);
-            finish();
+        UserPreferenceManager pref = new UserPreferenceManager(this);
+
+//        if (!tokenManager.hasToken()) {
+//            startActivity(new Intent(this, AuthenticationActivity.class));
+//            finish();
+//            return; // Stop executing further code
+//        }
+
+        if (!pref.isUserProfileComplete()) {
+            startActivity(new Intent(this, ActivityGetUserData.class));
         }
+
+
+
+
         bottomNavigation();
-        SystemBarUtils.setSystemBars(this, ContextCompat.getColor(this, R.color.layout_bg),
+        SystemBarUtils.setSystemBars(this, ContextCompat.getColor(this, R.color.transparent),
                 ContextCompat.getColor(this, R.color.on_layout_bg),
                 false);
 
-
-
+        String source = getIntent().getStringExtra("source_activity");
+        if (source != null && source.equals("OtpActivity")) {
+            customDialog = new CustomDialog(this);
+            customDialog.show();
+        }
     }
 
 
