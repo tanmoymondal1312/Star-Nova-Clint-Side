@@ -1,7 +1,8 @@
 package com.mediaghor.starnova.network;
 
-// RetrofitClient.java
 import com.mediaghor.starnova.api.ApiConstants;
+
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -20,6 +21,10 @@ public class RetrofitClient {
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
             OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(120, TimeUnit.SECONDS)
+                    .readTimeout(120, TimeUnit.SECONDS)
+                    .writeTimeout(120, TimeUnit.SECONDS)
+                    .callTimeout(120, TimeUnit.SECONDS) // optional but recommended
                     .addInterceptor(logging)
                     .build();
 

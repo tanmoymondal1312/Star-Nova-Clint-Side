@@ -83,11 +83,20 @@ public class CustomDialog {
 
     // Show the dialog
     public void show() {
-        dialog.show();
+        if (!dialog.isShowing()) {
+            dialog.show();
+        }
     }
 
     // Dismiss the dialog
     public void dismiss() {
-        dialog.dismiss();
+        if (dialog.isShowing()) {
+            dialog.dismiss();
+        }
+    }
+
+    // Check if dialog is currently showing
+    public boolean isShowing() {
+        return dialog != null && dialog.isShowing();
     }
 }

@@ -3,7 +3,9 @@ package com.mediaghor.starnova.network;
 // ApiService.java
 import com.mediaghor.starnova.model.LoginRequest;
 import com.mediaghor.starnova.model.LoginResponse;
-import com.mediaghor.starnova.model.UserSyncResponse;
+import com.mediaghor.starnova.model.UserData;
+import com.mediaghor.starnova.model.UserDataRequest;
+import com.mediaghor.starnova.model.UserDataResponse;
 
 import java.util.Map;
 
@@ -17,15 +19,20 @@ public interface ApiService {
     @POST("accounts/api/login")
     Call<LoginResponse> login(@Body LoginRequest request);
 
+
+    // Get & set user data (Token required)
     @POST("accounts/api/get-set-user-data")
-    Call<UserSyncResponse> syncUserData(
+    Call<UserDataResponse> getAndSetUserData(
             @Header("Authorization") String token,
-            @Body Map<String, Object> body
+            @Body UserDataRequest request
+    );
+
+    // For token-only call (no body)
+    @POST("accounts/api/get-set-user-data")
+    Call<UserDataResponse> getUserData(
+            @Header("Authorization") String token
     );
 
 
 
-    // 🔥 Future endpoints example
-    // @GET("quiz/list")
-    // Call<QuizResponse> getQuizList();
 }

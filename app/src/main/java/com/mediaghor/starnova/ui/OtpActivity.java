@@ -22,14 +22,22 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.gson.Gson;
 import com.mediaghor.starnova.R;
+import com.mediaghor.starnova.model.LanguageInfo;
 import com.mediaghor.starnova.model.LoginRequest;
 import com.mediaghor.starnova.model.LoginResponse;
 import com.mediaghor.starnova.network.ApiService;
 import com.mediaghor.starnova.network.RetrofitClient;
 import com.mediaghor.starnova.repository.AuthTokenManager;
+import com.mediaghor.starnova.repository.CompletionPreferenceManager;
+import com.mediaghor.starnova.repository.UserPreferenceManager;
+import com.mediaghor.starnova.ui.Dialog.CustomDialog;
 import com.mediaghor.starnova.ui.util.AuthExceptionHandler;
 import com.mediaghor.starnova.ui.FirebaseAuthManager;
+import com.mediaghor.starnova.ui.util.BaseActivity;
+import com.mediaghor.starnova.ui.util.LanguageManager;
+import com.mediaghor.starnova.ui.util.LanguageUtils;
 import com.mediaghor.starnova.ui.util.SystemBarUtils;
 import com.mediaghor.starnova.ui.util.VibrationUtil;
 import com.mukeshsolanki.OtpView;
@@ -38,7 +46,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class OtpActivity extends AppCompatActivity implements FirebaseAuthManager.AuthCallback {
+public class OtpActivity extends BaseActivity implements FirebaseAuthManager.AuthCallback {
 
     private static final String TAG = "OtpActivity";
 
@@ -53,6 +61,8 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
     private FirebaseAuthManager authManager;
     private String phone = null;
     private AuthTokenManager tokenManager;
+
+    CustomDialog customDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +133,7 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
             tvPhoneNumber = findViewById(R.id.tv_phone_number);
 
             findViewById(R.id.arrow_back).setOnClickListener(v -> onBackPressed());
+            customDialog = new CustomDialog(this);
 
             Log.d(TAG, "initViews: Views initialized successfully");
         } catch (Exception e) {
@@ -268,10 +279,6 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
     public void onSignInSuccess(AuthResult authResult) {
         Log.i(TAG, "onSignInSuccess: Authentication successful");
         runOnUiThread(() -> {
-
-
-            Toast.makeText(OtpActivity.this,
-                    "Authentication successful!", Toast.LENGTH_SHORT).show();
             if(tokenManager.hasToken()){
                 tokenManager.deleteToken();
             }
@@ -286,12 +293,35 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
                 @Override
                 public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        String token = response.body().getToken();
+                        LoginResponse loginResponse = response.body();
+                        String token = loginResponse.getToken();
                         tokenManager.setToken(token);
+
+                        CompletionPreferenceManager completionPreferenceManager = new CompletionPreferenceManager(OtpActivity.this);
+                        UserPreferenceManager userPreferenceManager = new UserPreferenceManager(OtpActivity.this);
+                        if (loginResponse.isProfileCompleted()){
+                            String name = loginResponse.getUserData().getName();
+                            String language = loginResponse.getUserData().getLanguage();
+                            String experience = loginResponse.getUserData().getExperienceLevel();
+                            int age = loginResponse.getUserData().getAge();
+                            String classification = loginResponse.getUserData().getClassification();
+                            userPreferenceManager.saveAllUserData(language,name,experience,classification,String.valueOf(age));
+                        }
+                        completionPreferenceManager.setCompleted(loginResponse.isProfileCompleted());
+
+                        LanguageInfo info = LanguageUtils.getLanguageInfo(loginResponse.getUserData().getLanguage());
+                        if (info != null) {
+                            LanguageManager.saveLanguage(OtpActivity.this, info.getCode());
+                        }
                         Log.d(TAG,"The Auth Token IS: "+token.toString());
+                        Gson gson = new Gson();
+                        String jsonResponse = gson.toJson(loginResponse);
+                        Log.d(TAG, "The Data Is: " + jsonResponse);
+
                         showLoading(false);
                         // TODO: Navigate to main activity or next screen
-
+                        Toast.makeText(OtpActivity.this,
+                                "Authentication successful!", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(OtpActivity.this, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         intent.putExtra("source_activity", "OtpActivity");
@@ -302,14 +332,15 @@ public class OtpActivity extends AppCompatActivity implements FirebaseAuthManage
 
                 @Override
                 public void onFailure(Call<LoginResponse> call, Throwable throwable) {
-                    Log.d(TAG,throwable.getMessage().toString());
-
+                    Log.e(TAG,throwable.getMessage().toString());
+                    showLoading(false);
+                    customDialog.setTitle("Problem In Account");
+                    customDialog.setMainImage(R.drawable.icon_sad);
+                    customDialog.setIcon(R.drawable.icon_info);
+                    customDialog.setDescription(throwable.getMessage().toString());
+                    customDialog.show();
                 }
             });
-
-
-
-
         });
     }
 

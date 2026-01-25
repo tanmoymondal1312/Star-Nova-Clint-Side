@@ -2,6 +2,7 @@ package com.mediaghor.starnova.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
@@ -10,7 +11,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -19,12 +19,21 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.gson.Gson;
 import com.mediaghor.starnova.R;
 import com.mediaghor.starnova.model.LanguageInfo;
+import com.mediaghor.starnova.model.UserDataModel;
+import com.mediaghor.starnova.model.UserDataRequest;
+import com.mediaghor.starnova.network.ApiService;
+import com.mediaghor.starnova.network.RetrofitClient;
 import com.mediaghor.starnova.repository.AuthTokenManager;
+import com.mediaghor.starnova.repository.CompletionPreferenceManager;
+import com.mediaghor.starnova.repository.UserDataRepository;
 import com.mediaghor.starnova.repository.UserPreferenceManager;
-import com.mediaghor.starnova.repository.UserSyncRepository;
+import com.mediaghor.starnova.ui.Dialog.CustomDialog;
+import com.mediaghor.starnova.ui.Dialog.LoadingDialog;
 import com.mediaghor.starnova.ui.util.BaseActivity;
+import com.mediaghor.starnova.ui.util.ExperienceLevelUtils;
 import com.mediaghor.starnova.ui.util.LanguageManager;
 import com.mediaghor.starnova.ui.util.LanguageUtils;
 import com.mediaghor.starnova.ui.util.SystemBarUtils;
@@ -33,6 +42,7 @@ import com.mediaghor.starnova.ui.util.WizardState;
 import com.skydoves.powerspinner.PowerSpinnerView;
 
 public class ActivityGetUserData extends BaseActivity {
+    String TAG = "ActivityGetUserData";
     private ConstraintLayout includeContainer;
     private AppCompatButton nextButton;
     private int currentLayoutIndex = 1;
@@ -44,6 +54,9 @@ public class ActivityGetUserData extends BaseActivity {
     private String userExperience;
     private String userClass;
     private String userAge;
+
+    CustomDialog customDialog;
+    LoadingDialog loadingDialog;
 
 
     @Override
@@ -73,6 +86,8 @@ public class ActivityGetUserData extends BaseActivity {
 
         includeContainer = findViewById(R.id.include);
         nextButton = findViewById(R.id.appCompatButton);
+        customDialog = new CustomDialog(this);
+        loadingDialog = new LoadingDialog(ActivityGetUserData.this);
 
         // Load the first layout
         currentLayoutIndex = WizardState.getStep(this);
@@ -180,7 +195,8 @@ public class ActivityGetUserData extends BaseActivity {
                     if (!userLanguage.isEmpty() && !userLanguage.equals("Select Language")) {
                         Toast.makeText(this, userLanguage +" Is Your Language", Toast.LENGTH_SHORT).show();
                         LanguageInfo info = LanguageUtils.getLanguageInfo(userLanguage);
-                        LanguageManager.saveLanguage(this, info.code);
+                        Log.d(TAG,"The Selected Language Code Is "+info.getCode());
+                        LanguageManager.saveLanguage(this, info.getCode());
                         WizardState.saveStep(this, 2);
                         restartSelf();
                         return false;
@@ -311,24 +327,73 @@ public class ActivityGetUserData extends BaseActivity {
     }
 
     private void processUserData() {
-        // Submit data to server or save locally
-        // For example:
-        // UserData userData = new UserData(userLanguage, userName, userExperience, userClass, userAge);
-        // saveOrSubmitUserData(userData);
-        UserSyncRepository repo = new UserSyncRepository(this);
-        AuthTokenManager authTokenManager = new AuthTokenManager(this);
+
+
+// Before API call
+        loadingDialog.start();
+
+// After API response (success / error)
+
+
+        AuthTokenManager authTokenManager = new AuthTokenManager(ActivityGetUserData.this);
         String token = authTokenManager.getToken();
-        repo.saveAndSyncUser(
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        UserDataRepository repo = new UserDataRepository(apiService);
+
+        String languageCode = LanguageManager.getLanguage(this);
+
+        // Check if language code is valid
+        if (languageCode == null || languageCode.isEmpty()) {
+            Toast.makeText(this, "Language not set properly", Toast.LENGTH_SHORT).show();
+            VibrationUtil.vibratePhone(this, 100);
+            return;
+        }
+        String serverValue =
+                ExperienceLevelUtils.getServerValue(userExperience);
+
+        if (serverValue == null) {
+            // fallback protection
+            serverValue = "beginner";
+        }
+
+
+        repo.saveUserData(
                 token,
-                userLanguage,
-                userName,
-                userExperience,
-                userClass,
-                userExperience
+                new UserDataRequest(userName, languageCode, serverValue, Integer.valueOf(userAge), userClass),
+                new UserDataRepository.UserDataCallback() {
+                    @Override
+                    public void onSuccess(UserDataModel userData) {
+                        UserPreferenceManager preferenceManager = new UserPreferenceManager(ActivityGetUserData.this);
+                        preferenceManager.saveAllUserData(
+                                userData.getLanguage(),
+                                userData.getName(),
+                                userData.getExperience_level(),
+                                userData.getClassification(),
+                                String.valueOf(userData.getAge())
+                        );
+                        CompletionPreferenceManager completionPreferenceManager = new CompletionPreferenceManager(ActivityGetUserData.this);
+                        completionPreferenceManager.setCompleted(true);
+                        Gson gson = new Gson();
+                        String jsonResponse = gson.toJson(userData);
+                        loadingDialog.dismiss();
+                        Log.d("ActivityGetUserData", "The Data Is: " + jsonResponse);
+                        startActivity(new Intent(ActivityGetUserData.this, MainActivity.class));
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        loadingDialog.dismiss();
+                        Log.e("ActivityGetUserData", "Error In Saving Data "+error);
+                        customDialog.setTitle("Problem In Account");
+                        customDialog.setMainImage(R.drawable.icon_sad);
+                        customDialog.setIcon(R.drawable.icon_info);
+                        customDialog.setDescription(error);
+                        customDialog.show();
+                    }
+                }
         );
 
-        Toast.makeText(this, "Data submitted successfully!", Toast.LENGTH_SHORT).show();
-        finish();
     }
 
     private void updateButtonText() {
@@ -370,6 +435,12 @@ public class ActivityGetUserData extends BaseActivity {
         startActivity(intent);
         finish();
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        loadingDialog.dismiss();
+    }
+
 
 
 }

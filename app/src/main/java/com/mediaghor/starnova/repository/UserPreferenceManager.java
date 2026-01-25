@@ -13,6 +13,8 @@ public class UserPreferenceManager {
     private static final String KEY_EXPERIENCE = "userExperience";
     private static final String KEY_CLASS = "userClass";
     private static final String KEY_AGE = "userAge";
+    private static final String KEY_COMPLETED = "isCompleted";
+
 
     private final SharedPreferences sharedPreferences;
     private final SharedPreferences.Editor editor;
@@ -88,6 +90,7 @@ public class UserPreferenceManager {
     public String getUserAge() {
         return sharedPreferences.getString(KEY_AGE, "");
     }
+
 
     /* ================= CLEAR ================= */
 

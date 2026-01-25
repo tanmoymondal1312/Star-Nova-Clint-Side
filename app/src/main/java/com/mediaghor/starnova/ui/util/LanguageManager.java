@@ -43,10 +43,15 @@ public final class LanguageManager {
 
     /* Android 13+ */
     private static void setLocaleApi33(Context context, String lang) {
-        LocaleManager localeManager = context.getSystemService(LocaleManager.class);
-        localeManager.setApplicationLocales(
-                LocaleList.forLanguageTags(lang)
-        );
+        LocaleManager localeManager = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            localeManager = context.getSystemService(LocaleManager.class);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            localeManager.setApplicationLocales(
+                    LocaleList.forLanguageTags(lang)
+            );
+        }
     }
 
     /* Android 8–12 */
